@@ -1,0 +1,1599 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>WAKE ME UP — История Тима Берглинга (Avicii)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover" />
+<style>
+  :root { --neon:#00e1ff; --neon2:#ff8800; --gold:#ffd23f; --warm:#ffaa66; }
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html, body {
+    height: 100%; width: 100%;
+    background: #000;
+    color: #fff;
+    font-family: Georgia, "Times New Roman", serif;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+  #game { display: block; width: 100vw; height: 100vh; background: #0a0a18; image-rendering: pixelated; }
+
+  .hud {
+    position: fixed; top: 8px; left: 8px; right: 8px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 5;
+    font-family: Impact, sans-serif;
+    font-size: 14px; letter-spacing: 2px;
+    text-shadow: 0 0 8px var(--neon), 0 0 2px #000;
+  }
+  .hud .place {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid var(--neon);
+    padding: 4px 10px; border-radius: 6px;
+    color: var(--gold);
+  }
+  .hud .quest {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid var(--neon2);
+    padding: 4px 10px; border-radius: 6px;
+    color: var(--neon2);
+    max-width: 60vw; text-align: right;
+    font-family: system-ui, sans-serif; font-size: 12px; letter-spacing: 0;
+  }
+  .hud .quest b { color: var(--gold); display:block; font-family: Impact, sans-serif; letter-spacing: 2px; font-size: 13px; margin-bottom: 2px; }
+
+  #joy {
+    position: fixed; left: 20px; bottom: 28px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(0,225,255,0.12);
+    border: 2px solid var(--neon);
+    box-shadow: 0 0 14px rgba(0,225,255,0.5);
+    z-index: 10; touch-action: none;
+  }
+  #stick {
+    position: absolute; top: 35px; left: 35px;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(255,210,63,0.6);
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 12px var(--gold);
+    pointer-events: none; transition: transform 0.05s;
+  }
+  #action {
+    position: fixed; right: 24px; bottom: 48px;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: rgba(255,136,0,0.18);
+    border: 3px solid var(--neon2);
+    color: #fff;
+    font-family: Impact, sans-serif;
+    font-size: 18px; letter-spacing: 3px;
+    box-shadow: 0 0 18px var(--neon2);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; touch-action: none; transition: all 0.05s;
+  }
+  #action.active { background: rgba(255,210,63,0.4); border-color: var(--gold); transform: scale(0.92); }
+  #action.glow { animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 18px var(--neon2); }
+    50% { box-shadow: 0 0 30px var(--gold), 0 0 50px var(--neon); }
+  }
+
+  .dialog-wrap {
+    position: fixed; left: 8px; right: 8px; bottom: 8px;
+    z-index: 20;
+    background: rgba(8,10,28,0.96);
+    border: 2px solid var(--neon);
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    box-shadow: 0 0 20px var(--neon);
+    max-height: 60vh; overflow-y: auto;
+  }
+  .dialog-wrap.hidden { display: none; }
+  .dialog-who {
+    font-family: Impact, sans-serif;
+    color: var(--gold); letter-spacing: 3px;
+    font-size: 16px; margin-bottom: 6px;
+  }
+  .dialog-text {
+    font-size: 16px; line-height: 1.5;
+    color: #f0e8f0; margin-bottom: 12px;
+  }
+  .dialog-text .fact {
+    display: block; margin-top: 10px;
+    padding: 8px 10px;
+    background: rgba(0,225,255,0.1);
+    border: 1px dashed rgba(0,225,255,0.4);
+    border-radius: 6px;
+    color: #b8f0ff;
+    font-family: system-ui, sans-serif; font-size: 13px;
+  }
+  .dialog-text .fact::before { content: '📜 '; }
+  .dialog-choices { display: flex; flex-direction: column; gap: 8px; }
+  .dialog-choice {
+    background: linear-gradient(180deg, rgba(0,225,255,0.2), rgba(0,80,120,0.3));
+    border: 2px solid var(--neon);
+    color: #fff; padding: 10px 14px;
+    border-radius: 8px;
+    font-family: Georgia, serif; font-size: 15px;
+    text-align: left; cursor: pointer; line-height: 1.4;
+  }
+  .dialog-choice:active { background: rgba(255,210,63,0.3); border-color: var(--gold); }
+  .dialog-next {
+    background: linear-gradient(180deg, var(--gold), #b88800);
+    color: #200; border: 2px solid #fff;
+    padding: 10px 20px; border-radius: 8px;
+    font-family: Impact, sans-serif;
+    font-size: 18px; letter-spacing: 3px;
+    cursor: pointer; width: 100%;
+  }
+
+  #hint {
+    position: fixed;
+    left: 50%; transform: translateX(-50%);
+    bottom: 165px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 6px 14px; border-radius: 20px;
+    font-family: Impact, sans-serif;
+    font-size: 14px; letter-spacing: 2px;
+    pointer-events: none; z-index: 8;
+    box-shadow: 0 0 10px var(--gold);
+  }
+  #hint.hidden { display: none; }
+
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(8,10,28,0.96);
+    z-index: 30;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h1 {
+    font-family: Impact, sans-serif; color: var(--gold);
+    text-shadow: 0 0 16px var(--neon), 4px 4px 0 #000;
+    letter-spacing: 6px; font-size: 44px; margin-bottom: 6px;
+  }
+  .overlay h2 {
+    font-family: Impact, sans-serif; color: var(--neon);
+    letter-spacing: 4px; font-size: 16px; margin-bottom: 20px;
+  }
+  .overlay p {
+    max-width: 560px; font-size: 15px; line-height: 1.6;
+    margin: 6px 0; color: #f0e8f0;
+    font-family: system-ui, sans-serif;
+  }
+  .overlay .big-btn {
+    margin-top: 22px; padding: 14px 30px;
+    background: linear-gradient(180deg, var(--neon), #005577);
+    color: #fff; border: 2px solid var(--gold);
+    font-family: Impact, sans-serif;
+    font-size: 22px; letter-spacing: 4px;
+    cursor: pointer; box-shadow: 0 0 16px var(--neon);
+    border-radius: 6px;
+  }
+  .overlay .star-big { font-size: 80px; filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 6px; }
+
+  #fade {
+    position: fixed; inset: 0;
+    background: #000; z-index: 25;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.4s;
+  }
+  #fade.on { opacity: 1; }
+
+  @media (max-width: 480px) {
+    .overlay h1 { font-size: 30px; letter-spacing: 3px; }
+    #joy { width: 110px; height: 110px; left: 14px; bottom: 22px; }
+    #stick { width: 50px; height: 50px; top: 30px; left: 30px; }
+    #action { width: 88px; height: 88px; right: 16px; bottom: 38px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div class="place" id="placeName">—</div>
+  <div class="quest" id="questBox"><b>ЗАДАНИЕ</b><span id="questText">—</span></div>
+</div>
+
+<div id="hint" class="hidden">▶ ВЗАИМОДЕЙСТВИЕ</div>
+<div id="joy"><div id="stick"></div></div>
+<div id="action">A</div>
+
+<div id="dialogWrap" class="dialog-wrap hidden">
+  <div class="dialog-who" id="dialogWho"></div>
+  <div class="dialog-text" id="dialogText"></div>
+  <div class="dialog-choices" id="dialogChoices"></div>
+</div>
+
+<div id="fade"></div>
+
+<div id="intro" class="overlay">
+  <div class="star-big">⚡</div>
+  <h1>WAKE ME UP</h1>
+  <h2>История Тима Берглинга · Бродилка</h2>
+  <p>Ты — Тим Берглинг. Парень из Стокгольма, который изменил электронную музыку и стал известен миру как <b style="color:var(--gold)">Avicii</b>.</p>
+  <p>Ходи по местам его жизни, говори с близкими, узнавай как он стал тем, кем стал — от спальни 16-летнего подростка до сцены Tomorrowland.</p>
+  <p><b style="color:var(--gold)">Управление:</b> джойстик слева — ходить, кнопка <b style="color:var(--neon2)">A</b> справа — говорить, действовать. На клавиатуре: <b>WASD / стрелки</b>, <b>Space / E</b>.</p>
+  <button class="big-btn" id="startBtn">НАЧАТЬ ИСТОРИЮ</button>
+</div>
+
+<div id="ending" class="overlay hidden">
+  <div class="star-big">🕯</div>
+  <h1 id="endTitle">НАСЛЕДИЕ</h1>
+  <h2 id="endSub"></h2>
+  <p id="endText"></p>
+  <button class="big-btn" id="restartBtn">НАЧАТЬ ЗАНОВО</button>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const placeNameEl = document.getElementById('placeName');
+  const questTextEl = document.getElementById('questText');
+  const hintEl = document.getElementById('hint');
+  const dialogWrap = document.getElementById('dialogWrap');
+  const dialogWho = document.getElementById('dialogWho');
+  const dialogText = document.getElementById('dialogText');
+  const dialogChoices = document.getElementById('dialogChoices');
+  const fadeEl = document.getElementById('fade');
+  const introEl = document.getElementById('intro');
+  const endingEl = document.getElementById('ending');
+
+  let W = window.innerWidth, H = window.innerHeight;
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W; canvas.height = H;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let audioCtx;
+  function ac() { if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+  function blip(f=440, d=0.06, t='square', v=0.05) {
+    try {
+      const a = ac();
+      const o = a.createOscillator(); const g = a.createGain();
+      o.type = t; o.frequency.value = f; g.gain.value = v;
+      o.connect(g).connect(a.destination); o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + d);
+      o.stop(a.currentTime + d);
+    } catch(e){}
+  }
+
+  const TILE = 36;
+  const PLAYER_SPEED = 2.6;
+
+  const game = {
+    location: null,
+    quest: '—',
+    flags: {},
+    pendingTalk: null,
+    lockMovement: false,
+  };
+
+  const tim = {
+    x: 0, y: 0, dir: 'down', walk: 0,
+  };
+
+  const LOCATIONS = {};
+
+  // ===== L1: Bedroom in Stockholm, 2006 =====
+  LOCATIONS.bedroom = {
+    name: 'Спальня в Стокгольме · 2006',
+    floor: '#3a3a4a',
+    wall: '#1a1a28',
+    tilesW: 16, tilesH: 11,
+    walls: [
+      {x:0,y:0,w:16,h:1},
+      {x:0,y:10,w:16,h:1},
+      {x:0,y:0,w:1,h:11},
+      {x:15,y:0,w:1,h:11},
+      {x:2,y:2,w:3,h:2},  // bed
+      {x:10,y:2,w:4,h:2}, // desk
+    ],
+    decor: [
+      {type:'bed', x:2, y:2, w:3, h:2},
+      {type:'desk', x:10, y:2, w:4, h:2},
+      {type:'computer', x:11, y:2},
+      {type:'speakers', x:12, y:2},
+      {type:'speakers', x:13, y:2},
+      {type:'door', x:14, y:9, w:1, h:1, label:'OUT'},
+      {type:'poster', x:5, y:1, label:'DAFT PUNK'},
+      {type:'poster', x:7, y:1, label:'BASEMENT JAXX'},
+      {type:'poster', x:9, y:1, label:'ERIC PRYDZ'},
+      {type:'rug', x:6, y:6, w:4, h:3},
+    ],
+    npcs: [
+      {
+        id: 'mom',
+        name: 'Мама Анки',
+        x: 5, y: 5,
+        color: '#a07090',
+        hair: 'mom',
+        talk: () => ({
+          who: 'Анки Лидéн',
+          lines: [
+            'Тим, опять всю ночь за компьютером? Уже четыре утра.',
+            'Я знаю что тебе это важно. Просто не забывай есть.',
+            { fact: 'Анки Лидéн — известная шведская актриса, мама Тима. Папа Клас Берглинг — бизнесмен. У Тима было трое сиблингов: старший брат Дэвид (тоже диджей), сестра Линда и сводный брат Антон Кёрберг.' },
+          ]
+        })
+      },
+      {
+        id: 'brother',
+        name: 'Брат Дэвид',
+        x: 13, y: 6,
+        color: '#446688',
+        hair: 'shaggy',
+        talk: () => {
+          if (!game.flags.metBrother) {
+            game.flags.metBrother = true;
+            return {
+              who: 'Дэвид Берглинг',
+              lines: [
+                'Тимми, я слушал твой последний трек. Серьёзно, это уже не любительский уровень.',
+                'Покажи это людям. Зайди на форум Laidback Luke — там диджеи помогают друг другу. Скинь туда.',
+                { fact: 'Старший брат Тима Дэвид Берглинг сам диджей, и именно он вдохновил Тима заняться музыкой. Тим начал миксовать в 8 лет.' },
+              ],
+              after: () => setQuest('Подойди к компьютеру и зайди на форум Laidback Luke.'),
+            };
+          }
+          return {
+            who: 'Дэвид',
+            lines: ['Иди работай, братишка. Мир должен это услышать.']
+          };
+        }
+      },
+    ],
+    interactables: [
+      {
+        id: 'computer',
+        name: 'Компьютер с FL Studio',
+        x: 11, y: 3,
+        action: () => {
+          if (!game.flags.metBrother) {
+            return {
+              who: 'Компьютер',
+              lines: [
+                'На экране открыт FL Studio. На таймлайне — наполовину готовый трек.',
+                'Сначала поговори с братом — он что-то про тебя говорил.',
+              ]
+            };
+          }
+          return {
+            who: 'FL Studio',
+            lines: [
+              'Открываешь браузер. Заходишь на форум Laidback Luke. Создаёшь тред.',
+              'Пишешь: "Hi everyone, my name is Tim, I make house music. Here\'s my new track, any feedback?"',
+              'Прикрепляешь файл. Нажимаешь "Post".',
+              { fact: 'В 2007 Тим начал постить ремиксы на форуме Laidback Luke — там голландский DJ давал советы молодым продюсерам. Это сильно повлияло на стиль Тима.' },
+            ],
+            after: () => {
+              setQuest('Выйди из комнаты через дверь — пора в большой мир.');
+              game.flags.postedOnForum = true;
+            }
+          };
+        }
+      },
+      {
+        id: 'rug',
+        name: 'Коврик',
+        x: 7, y: 7,
+        action: () => ({
+          who: 'Комната',
+          lines: [
+            'Старый коврик. На нём ты лежал часами в наушниках, слушая Daft Punk, Basement Jaxx, Eric Prydz.',
+            'Эти звуки сейчас живут в твоих треках.',
+          ]
+        })
+      },
+    ],
+    exits: [
+      {
+        x: 14, y: 9, w: 1, h: 1,
+        condition: () => game.flags.postedOnForum,
+        condFail: 'Сначала запости трек на форум.',
+        to: 'forum',
+        spawnAt: {x: 8, y: 9},
+      }
+    ]
+  };
+
+  // ===== L2: Online forum (virtual room with screens) =====
+  LOCATIONS.forum = {
+    name: 'Интернет · форум Laidback Luke · 2007',
+    floor: '#1a2840',
+    wall: '#08101a',
+    tilesW: 18, tilesH: 11,
+    walls: [
+      {x:0,y:0,w:18,h:1},
+      {x:0,y:10,w:18,h:1},
+      {x:0,y:0,w:1,h:11},
+      {x:17,y:0,w:1,h:11},
+    ],
+    decor: [
+      {type:'screen', x:2, y:1, label:'SOUNDCLOUD'},
+      {type:'screen', x:5, y:1, label:'MYSPACE'},
+      {type:'screen', x:8, y:1, label:'FORUM'},
+      {type:'screen', x:11, y:1, label:'YOUTUBE'},
+      {type:'screen', x:14, y:1, label:'BLOG'},
+      {type:'door', x:16, y:9, w:1, h:1, label:'2010 →'},
+    ],
+    npcs: [
+      {
+        id: 'luke',
+        name: 'Laidback Luke',
+        x: 8, y: 4,
+        color: '#ff8800',
+        hair: 'shaggy',
+        talk: () => {
+          if (!game.flags.metLuke) {
+            game.flags.metLuke = true;
+            return {
+              who: 'Laidback Luke',
+              lines: [
+                'Эй, Тим! Я слушал твой трек. У тебя есть кое-что особенное — мелодии. Большинство EDM-продюсеров делают бит, но не мелодии. У тебя наоборот.',
+                'Только название "Tim Bergling" слишком сложное для мира. Возьми псевдоним.',
+                'Что-нибудь короткое, странное, запоминающееся.',
+              ],
+              choices: [
+                {
+                  text: '"Avicii". От слова Avīci — низший круг буддийского ада.',
+                  effect: () => {
+                    game.flags.chosenName = true;
+                    talkAfter({
+                      who: 'Laidback Luke',
+                      lines: [
+                        'Avicii. Странно. Звучит как взрыв. Мне нравится.',
+                        { fact: 'Тим выбрал псевдоним Avicii потому что его настоящее имя уже было занято на MySpace. Avīci — низший круг буддийского ада, и Тим увидел это слово в одной из книг.' },
+                      ],
+                      after: () => setQuest('Появилась дверь к менеджеру. Иди вперёд.')
+                    });
+                  }
+                },
+                {
+                  text: '"Tim Berg" — просто короче.',
+                  effect: () => {
+                    game.flags.chosenName = true;
+                    talkAfter({
+                      who: 'Laidback Luke',
+                      lines: [
+                        'Тоже вариант. Ты так первые треки и подписывал.',
+                        { fact: 'До псевдонима Avicii Тим использовал имя Tim Berg для некоторых ранних треков, например "Bromance".' },
+                      ],
+                      after: () => setQuest('Появилась дверь к менеджеру. Иди вперёд.')
+                    });
+                  }
+                },
+              ]
+            };
+          }
+          return { who: 'Luke', lines: ['Продолжай работать. Мир тебя услышит.'] };
+        }
+      },
+    ],
+    interactables: [
+      {
+        id: 'forum_screen',
+        name: 'Экран форума',
+        x: 8, y: 2,
+        action: () => ({
+          who: 'Форум',
+          lines: [
+            'На экране — твой пост с трёхстраничной веткой комментариев.',
+            'Сотни людей пишут: "this is fire", "who is this kid?", "post more tracks!".',
+            'Один из них — Эш Пурнури из Швеции. Менеджер. Он пишет тебе личное сообщение.',
+          ]
+        })
+      },
+    ],
+    exits: [
+      {
+        x: 16, y: 9, w: 1, h: 1,
+        condition: () => game.flags.chosenName,
+        condFail: 'Сначала поговори с Laidback Luke и выбери псевдоним.',
+        to: 'studio',
+        spawnAt: {x: 2, y: 9},
+      }
+    ]
+  };
+
+  // ===== L3: Ash Pournouri's studio, 2010 =====
+  LOCATIONS.studio = {
+    name: 'Студия PRMD · Стокгольм · 2010',
+    floor: '#2a2010',
+    wall: '#100808',
+    tilesW: 16, tilesH: 11,
+    walls: [
+      {x:0,y:0,w:16,h:1},
+      {x:0,y:10,w:16,h:1},
+      {x:0,y:0,w:1,h:11},
+      {x:15,y:0,w:1,h:11},
+      {x:6,y:3,w:4,h:2},  // mixing desk
+    ],
+    decor: [
+      {type:'mixing-desk', x:6, y:3, w:4, h:2},
+      {type:'monitor-pair', x:5, y:2},
+      {type:'monitor-pair', x:10, y:2},
+      {type:'sofa', x:2, y:7, w:3, h:1},
+      {type:'door', x:14, y:9, w:1, h:1, label:'TOUR →'},
+      {type:'poster', x:2, y:1, label:'PRMD'},
+      {type:'poster', x:13, y:1, label:'AVICII'},
+    ],
+    npcs: [
+      {
+        id: 'ash',
+        name: 'Эш Пурнури',
+        x: 8, y: 6,
+        color: '#664422',
+        hair: 'suit',
+        talk: () => {
+          if (!game.flags.metAsh) {
+            game.flags.metAsh = true;
+            return {
+              who: 'Эш Пурнури',
+              lines: [
+                'Тим. Я веду тебя три года. Ты вырос из спальни в реальную звезду.',
+                '"Levels" вышел вчера. Ты в курсе что он уже на №1 в Венгрии и Норвегии?',
+                'А теперь главное. Я подписал тебе контракт на тур. 250+ концертов в год.',
+                'Это шанс заработать миллионы. Но это убивает людей. Скажи — ты готов?',
+              ],
+              choices: [
+                {
+                  text: '"Готов. Музыка — всё что у меня есть. Я выдержу."',
+                  effect: () => {
+                    game.flags.signedTour = true;
+                    talkAfter({
+                      who: 'Эш Пурнури',
+                      lines: [
+                        'Хорошо. Завтра первый концерт — Майами, Ultra Music Festival.',
+                        'Я буду рядом, помогать. Не забывай — ты сейчас не Тим. Ты Avicii.',
+                        { fact: 'Эш Пурнури управлял Avicii через лейбл PRMD Music с 2008 по 2016. Он же спродюсировал многие хиты, в том числе "Levels".' },
+                      ],
+                      after: () => setQuest('Выйди на сцену Tomorrowland через дверь справа.')
+                    });
+                  }
+                },
+                {
+                  text: '"Подожди. Мне нужно подумать. 250 концертов — это много."',
+                  effect: () => {
+                    game.flags.signedTour = true;
+                    talkAfter({
+                      who: 'Эш Пурнури',
+                      lines: [
+                        'Тим, окно возможностей открыто ОДИН раз. Ты упустишь его — и навсегда.',
+                        'Я понимаю твои опасения. Давай попробуем год — если будет тяжело, сократим.',
+                        '(Через год он не сократил. Тур стал ещё больше.)',
+                      ],
+                      after: () => setQuest('Выйди на сцену Tomorrowland через дверь справа.')
+                    });
+                  }
+                },
+              ]
+            };
+          }
+          return { who: 'Эш', lines: ['Тим, через час самолёт. Готовься.'] };
+        }
+      },
+    ],
+    interactables: [
+      {
+        id: 'mixing_desk',
+        name: 'Микшерный пульт',
+        x: 7, y: 4,
+        action: () => ({
+          who: 'Микшер',
+          lines: [
+            'На пульте — сессия "Levels". Тысячи дорожек, тысячи правок.',
+            'Это твоя песня. Ты её сделал. Через месяц её будут петь миллионы.',
+            { fact: 'Сингл "Levels" вышел в октябре 2011, использует сэмпл из песни Этты Джеймс "Something\'s Got a Hold on Me" (1962). Песня вознесла Avicii на мировой Олимп.' },
+          ]
+        })
+      },
+    ],
+    exits: [
+      {
+        x: 14, y: 9, w: 1, h: 1,
+        condition: () => game.flags.signedTour,
+        condFail: 'Сначала поговори с Эшем.',
+        to: 'tomorrowland',
+        spawnAt: {x: 2, y: 9},
+      }
+    ]
+  };
+
+  // ===== L4: Tomorrowland 2013 =====
+  LOCATIONS.tomorrowland = {
+    name: 'Tomorrowland · Бум, Бельгия · 2013',
+    floor: '#180430',
+    wall: '#000000',
+    tilesW: 20, tilesH: 11,
+    walls: [
+      {x:0,y:0,w:20,h:1},
+      {x:0,y:10,w:20,h:1},
+      {x:0,y:0,w:1,h:11},
+      {x:19,y:0,w:1,h:11},
+      {x:8,y:3,w:4,h:2}, // DJ booth
+    ],
+    decor: [
+      {type:'dj-booth', x:8, y:3, w:4, h:2},
+      {type:'speakers', x:3, y:3},
+      {type:'speakers', x:15, y:3},
+      {type:'pyro', x:2, y:5},
+      {type:'pyro', x:17, y:5},
+      {type:'spotlight', x:5, y:1},
+      {type:'spotlight', x:10, y:1},
+      {type:'spotlight', x:14, y:1},
+      {type:'crowd', x:0, y:9, w:20, h:1},
+      {type:'door', x:1, y:6, w:1, h:1, label:'← BACK'},
+    ],
+    npcs: [
+      {
+        id: 'salem',
+        name: 'Сэйлем Аль-Файа',
+        x: 14, y: 6,
+        color: '#22aa66',
+        hair: 'shaggy',
+        talk: () => ({
+          who: 'Сэйлем Аль-Файа',
+          lines: [
+            'Тим, я смотрю как ты живёшь. 250 концертов в год. Боли в животе. Алкоголь чтобы заснуть.',
+            'Это не жизнь. Это машина. Когда ты её остановишь?',
+            { fact: 'У Avicii был тяжёлый острый панкреатит в 2012. Из-за болей он стал зависим от опиоидов (OxyContin, Vicodin). В 2014 удалили желчный пузырь и аппендикс.' },
+          ]
+        })
+      },
+    ],
+    interactables: [
+      {
+        id: 'dj_booth',
+        name: 'DJ-пульт',
+        x: 9, y: 4,
+        action: () => {
+          if (!game.flags.playedSet) {
+            game.flags.playedSet = true;
+            return {
+              who: 'Сцена Tomorrowland',
+              lines: [
+                'Под тобой — 180 000 человек.',
+                'Ты нажимаешь Play. Звучит вступление "Wake Me Up".',
+                'Гитарный рифф. Голос Алоэ Блэка. Толпа поёт каждое слово на разных языках.',
+                'Это твой пик. Ты в 23 года стал самым популярным DJ планеты.',
+                { fact: '"Wake Me Up" (2013) — самая стримовая песня на Spotify на момент выхода. Альбом True (2013) попал в топ-10 в 15+ странах.' },
+              ],
+              after: () => setQuest('Поговори с Сэйлемом справа. Потом — выход назад.')
+            };
+          }
+          return {
+            who: 'Сцена',
+            lines: ['Толпа продолжает танцевать. Но ты уже устал.'],
+            after: () => setQuest('Поговори с Сэйлемом справа. Потом — выход назад.')
+          };
+        }
+      },
+    ],
+    exits: [
+      {
+        x: 1, y: 6, w: 1, h: 1,
+        condition: () => game.flags.playedSet,
+        condFail: 'Сначала выйди на сцену.',
+        to: 'home',
+        spawnAt: {x: 8, y: 8},
+        onEnter: () => {
+          setQuest('Стокгольм, 2016. Ты объявил об уходе с туров. Сделай то, для чего тебя сюда привели.');
+        }
+      }
+    ]
+  };
+
+  // ===== L5: Home in Stockholm after retirement, 2016-2017 =====
+  LOCATIONS.home = {
+    name: 'Дом в Стокгольме · после турне · 2016-2017',
+    floor: '#2a2a3a',
+    wall: '#0a0a18',
+    tilesW: 16, tilesH: 11,
+    walls: [
+      {x:0,y:0,w:16,h:1},
+      {x:0,y:10,w:16,h:1},
+      {x:0,y:0,w:1,h:11},
+      {x:15,y:0,w:1,h:11},
+      {x:2,y:2,w:3,h:1},
+      {x:11,y:2,w:3,h:1},
+    ],
+    decor: [
+      {type:'piano', x:2, y:2, w:3, h:1},
+      {type:'mixing-desk', x:11, y:2, w:3, h:1},
+      {type:'plant', x:6, y:6},
+      {type:'plant', x:10, y:6},
+      {type:'sofa', x:5, y:7, w:5, h:1},
+      {type:'window-big', x:7, y:1, w:2, h:1},
+      {type:'door', x:14, y:9, w:1, h:1, label:'LEGACY →'},
+    ],
+    npcs: [
+      {
+        id: 'dad',
+        name: 'Папа Клас',
+        x: 5, y: 5,
+        color: '#446644',
+        hair: 'suit',
+        talk: () => ({
+          who: 'Клас Берглинг',
+          lines: [
+            'Тимми. Здесь тихо, да? Я знаю, тебе нужна тишина.',
+            'Ты сделал то, о чём другие мечтают всю жизнь. Теперь твоя очередь жить.',
+            'Что ты хочешь сейчас? Не Avicii. Тим. Что нужно тебе?',
+          ],
+          choices: [
+            {
+              text: '"Делать музыку. Просто. Без туров, без давления."',
+              effect: () => {
+                game.flags.choseMusic = true;
+                talkAfter({
+                  who: 'Клас',
+                  lines: [
+                    'Делай. У тебя есть студия. У тебя есть время. Делай то, что любишь.',
+                  ]
+                });
+              }
+            },
+            {
+              text: '"Не знаю, папа. Мне просто хочется отдохнуть."',
+              effect: () => {
+                game.flags.choseRest = true;
+                talkAfter({
+                  who: 'Клас',
+                  lines: [
+                    'Тогда отдыхай. Никто никуда не торопится. Ты дома.',
+                  ]
+                });
+              }
+            },
+          ]
+        })
+      },
+    ],
+    interactables: [
+      {
+        id: 'piano',
+        name: 'Пианино',
+        x: 3, y: 3,
+        action: () => ({
+          who: 'Пианино',
+          lines: [
+            'Старое акустическое пианино у окна. Ты часами сидишь за ним, разбирая мелодии.',
+            'Без бита. Без диско-битов. Просто мелодия. Так начинались "Wake Me Up" и "Hey Brother".',
+            { fact: 'Тим всегда начинал свои треки с мелодии на пианино или гитаре, а уже потом строил вокруг них электронную аранжировку. Это и отличало его стиль.' },
+          ]
+        })
+      },
+      {
+        id: 'mix_home',
+        name: 'Домашняя студия',
+        x: 12, y: 3,
+        action: () => ({
+          who: 'Студия',
+          lines: [
+            'Здесь ты работаешь над тем что станет EP "Avīci (01)" — твой первый релиз за два года.',
+            'И параллельно — материал для альбома, который выйдет уже без тебя. Альбом "TIM" (2019).',
+            { fact: 'Альбом "TIM" вышел посмертно 6 июня 2019, его доделывали друзья и продюсеры Тима. Все доходы от альбома идут в Tim Bergling Foundation — фонд по предотвращению самоубийств и поддержке психического здоровья.' },
+          ]
+        })
+      },
+      {
+        id: 'window',
+        name: 'Окно',
+        x: 8, y: 2,
+        action: () => ({
+          who: 'Окно',
+          lines: [
+            'За окном Стокгольм. Снег. Тишина.',
+            'Здесь нет 180 000 человек, кричащих твоё имя. Только ты, мелодия, и звёзды над городом.',
+          ]
+        })
+      },
+    ],
+    exits: [
+      {
+        x: 14, y: 9, w: 1, h: 1,
+        to: 'legacy',
+        spawnAt: {x: 10, y: 8},
+        onEnter: () => setQuest('Зайди в зал. Подойди к центру.'),
+      }
+    ]
+  };
+
+  // ===== L6: Memorial hall =====
+  LOCATIONS.legacy = {
+    name: 'Зал памяти · 2018 → ∞',
+    floor: '#10182a',
+    wall: '#000000',
+    tilesW: 18, tilesH: 11,
+    walls: [
+      {x:0,y:0,w:18,h:1},
+      {x:0,y:10,w:18,h:1},
+      {x:0,y:0,w:1,h:11},
+      {x:17,y:0,w:1,h:11},
+    ],
+    decor: [
+      {type:'candle', x:4, y:3},
+      {type:'candle', x:6, y:3},
+      {type:'candle', x:11, y:3},
+      {type:'candle', x:13, y:3},
+      {type:'memorial', x:8, y:3, w:2, h:2},
+      {type:'spotlight-soft', x:9, y:1},
+    ],
+    npcs: [],
+    interactables: [
+      {
+        id: 'memorial',
+        name: 'Мемориал',
+        x: 9, y: 4,
+        action: () => {
+          game.flags.viewedMemorial = true;
+          return {
+            who: 'Мемориал',
+            lines: [
+              'Тим Берглинг.',
+              '8 сентября 1989 — 20 апреля 2018.',
+              'Шведский диджей, продюсер, мелодист. Один из тех, кто принёс электронную танцевальную музыку на мировое радио.',
+              'Хиты: "Levels" (2011), "Wake Me Up" (2013), "Hey Brother" (2013), "The Nights" (2014), "Without You" (2017), "SOS" (2019).',
+              { fact: 'В 2019 родители Тима основали Tim Bergling Foundation — благотворительный фонд по предотвращению самоубийств, поддержке людей с психическими расстройствами и популяризации разговора о ментальном здоровье. tim-bergling-foundation.org' },
+              'Документальный фильм "Avicii: True Stories" (2017) показывает изнутри как давление туров и слава влияли на него. Многие говорят что фильм стоит посмотреть всем — особенно молодым артистам.',
+              'Нажми A чтобы закончить историю.',
+            ]
+          };
+        }
+      },
+      {
+        id: 'candle1',
+        name: 'Свеча',
+        x: 4, y: 4,
+        action: () => ({
+          who: 'Свеча',
+          lines: [
+            'Кто-то из фанатов оставил записку: "Спасибо. Музыка спасла мне жизнь в трудный год. Ты не знал, но ты помогал."',
+          ]
+        })
+      },
+      {
+        id: 'candle2',
+        name: 'Свеча',
+        x: 13, y: 4,
+        action: () => ({
+          who: 'Свеча',
+          lines: [
+            'Записка: "Без тебя я бы не открыл для себя электронную музыку. Спасибо за мелодии."',
+          ]
+        })
+      },
+    ],
+    exits: []
+  };
+
+  function setQuest(t) { game.quest = t; questTextEl.textContent = t; }
+  function setPlace(name) { placeNameEl.textContent = name; }
+
+  function transition(toLoc, spawnAt, onEnterExtra) {
+    fadeEl.classList.add('on');
+    game.lockMovement = true;
+    setTimeout(() => {
+      game.location = LOCATIONS[toLoc];
+      tim.x = spawnAt.x * TILE + TILE/2;
+      tim.y = spawnAt.y * TILE + TILE/2;
+      setPlace(game.location.name);
+      if (onEnterExtra) onEnterExtra();
+      setTimeout(() => {
+        fadeEl.classList.remove('on');
+        game.lockMovement = false;
+      }, 50);
+    }, 400);
+  }
+
+  let dialogState = null;
+  function showDialog(d) {
+    if (!d) return;
+    game.lockMovement = true;
+    dialogState = d;
+    dialogState.lineIdx = 0;
+    renderDialog();
+    dialogWrap.classList.remove('hidden');
+  }
+  function renderDialog() {
+    const d = dialogState;
+    if (!d) { dialogWrap.classList.add('hidden'); game.lockMovement = false; return; }
+    dialogWho.textContent = d.who || '';
+    const line = d.lines ? d.lines[d.lineIdx] : null;
+    if (typeof line === 'object' && line && line.fact) {
+      dialogText.innerHTML = `<span class="fact">${line.fact}</span>`;
+    } else if (line) {
+      dialogText.textContent = line;
+    } else {
+      dialogText.textContent = '';
+    }
+    dialogChoices.innerHTML = '';
+    const isLastLine = !d.lines || d.lineIdx >= d.lines.length - 1;
+    if (isLastLine && d.choices && d.choices.length > 0) {
+      d.choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'dialog-choice';
+        btn.textContent = c.text;
+        btn.onclick = () => {
+          blip(660, 0.04, 'square', 0.04);
+          dialogState = null;
+          dialogWrap.classList.add('hidden');
+          if (c.effect) c.effect();
+          if (!dialogState) game.lockMovement = false;
+        };
+        dialogChoices.appendChild(btn);
+      });
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'dialog-next';
+      btn.textContent = isLastLine ? 'ЗАКРЫТЬ' : 'ДАЛЕЕ →';
+      btn.onclick = () => {
+        blip(440, 0.03, 'square', 0.03);
+        if (isLastLine) {
+          const after = d.after;
+          dialogState = null;
+          dialogWrap.classList.add('hidden');
+          game.lockMovement = false;
+          if (after) after();
+          // Если это мемориал — концовка
+          if (game.flags.viewedMemorial && game.location === LOCATIONS.legacy) {
+            setTimeout(showEnding, 300);
+          }
+        } else {
+          d.lineIdx++;
+          renderDialog();
+        }
+      };
+      dialogChoices.appendChild(btn);
+    }
+  }
+  function talkAfter(d) { setTimeout(() => showDialog(d), 100); }
+
+  function showEnding() {
+    document.getElementById('endTitle').textContent = 'НАСЛЕДИЕ';
+    document.getElementById('endSub').textContent = 'Music never dies';
+    document.getElementById('endText').textContent =
+      'Тим Берглинг прожил 28 лет. Он научил мир, что электронная музыка может быть мелодичной, человеческой, эмоциональной. Его песни до сих пор слушают сотни миллионов людей. Если ты или кто-то из твоих близких борется с депрессией или мыслями о суициде — поговори с кем-то. Tim Bergling Foundation и местные службы помощи существуют именно для этого.';
+    endingEl.classList.remove('hidden');
+  }
+
+  const keys = {};
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
+    if ((e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') && !dialogState) tryInteract();
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  const joy = document.getElementById('joy');
+  const stick = document.getElementById('stick');
+  let joyActive = false;
+  let joyDx = 0, joyDy = 0;
+  const joyRect = () => joy.getBoundingClientRect();
+  function joyStart(e) { e.preventDefault(); joyActive = true; joyMove(e); }
+  function joyMove(e) {
+    if (!joyActive) return;
+    e.preventDefault();
+    const r = joyRect();
+    const cx = r.left + r.width/2;
+    const cy = r.top + r.height/2;
+    const t = e.touches ? e.touches[0] : e;
+    const dx = t.clientX - cx;
+    const dy = t.clientY - cy;
+    const max = r.width/2 - 10;
+    const dist = Math.hypot(dx, dy);
+    let nx = dx, ny = dy;
+    if (dist > max) { nx = dx/dist * max; ny = dy/dist * max; }
+    stick.style.transform = `translate(${nx}px, ${ny}px)`;
+    joyDx = nx / max; joyDy = ny / max;
+  }
+  function joyEnd(e) {
+    e.preventDefault();
+    joyActive = false;
+    stick.style.transform = 'translate(0,0)';
+    joyDx = 0; joyDy = 0;
+  }
+  joy.addEventListener('touchstart', joyStart, {passive: false});
+  joy.addEventListener('touchmove', joyMove, {passive: false});
+  joy.addEventListener('touchend', joyEnd, {passive: false});
+  joy.addEventListener('touchcancel', joyEnd, {passive: false});
+  joy.addEventListener('mousedown', joyStart);
+  window.addEventListener('mousemove', joyMove);
+  window.addEventListener('mouseup', joyEnd);
+
+  const actionBtn = document.getElementById('action');
+  const actionDown = e => {
+    e.preventDefault();
+    actionBtn.classList.add('active');
+    if (dialogState) {
+      const btn = dialogChoices.querySelector('.dialog-next') || dialogChoices.querySelector('.dialog-choice');
+      if (btn) btn.click();
+    } else {
+      tryInteract();
+    }
+  };
+  const actionUp = e => { e.preventDefault(); actionBtn.classList.remove('active'); };
+  actionBtn.addEventListener('touchstart', actionDown, {passive: false});
+  actionBtn.addEventListener('touchend', actionUp, {passive: false});
+  actionBtn.addEventListener('mousedown', actionDown);
+  actionBtn.addEventListener('mouseup', actionUp);
+
+  document.addEventListener('touchmove', e => { e.preventDefault(); }, {passive: false});
+
+  function getNearbyInteractive() {
+    const loc = game.location;
+    if (!loc) return null;
+    const px = tim.x / TILE;
+    const py = tim.y / TILE;
+    let best = null, bestD = 1.6;
+    (loc.npcs || []).forEach(n => {
+      const d = Math.hypot(n.x + 0.5 - px, n.y + 0.5 - py);
+      if (d < bestD) { bestD = d; best = {kind:'npc', ref:n}; }
+    });
+    (loc.interactables || []).forEach(i => {
+      const d = Math.hypot(i.x + 0.5 - px, i.y + 0.5 - py);
+      if (d < bestD) { bestD = d; best = {kind:'item', ref:i}; }
+    });
+    (loc.exits || []).forEach(ex => {
+      const cx = ex.x + ex.w/2, cy = ex.y + ex.h/2;
+      const d = Math.hypot(cx - px, cy - py);
+      if (d < bestD) { bestD = d; best = {kind:'exit', ref:ex}; }
+    });
+    return best;
+  }
+
+  function tryInteract() {
+    if (game.lockMovement) return;
+    const hit = getNearbyInteractive();
+    if (!hit) return;
+    if (hit.kind === 'npc') {
+      const d = hit.ref.talk();
+      showDialog(d);
+    } else if (hit.kind === 'item') {
+      const d = hit.ref.action();
+      if (d) showDialog(d);
+    } else if (hit.kind === 'exit') {
+      const ex = hit.ref;
+      if (ex.condition && !ex.condition()) {
+        showDialog({ who: '', lines: [ex.condFail || 'Здесь пока нечего делать.'] });
+        return;
+      }
+      transition(ex.to, ex.spawnAt, ex.onEnter);
+    }
+  }
+
+  function blockedAt(px, py) {
+    const loc = game.location;
+    if (!loc) return true;
+    if (px < 0.4 || py < 0.4) return true;
+    if (px > loc.tilesW - 0.4 || py > loc.tilesH - 0.4) return true;
+    for (const w of loc.walls) {
+      if (px > w.x - 0.1 && px < w.x + w.w + 0.1 &&
+          py > w.y - 0.1 && py < w.y + w.h + 0.1) {
+        const onExit = (loc.exits||[]).some(ex =>
+          px >= ex.x && px <= ex.x + ex.w &&
+          py >= ex.y && py <= ex.y + ex.h);
+        if (onExit) continue;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function update() {
+    if (game.lockMovement) { tim.walk *= 0.9; return; }
+    let dx = 0, dy = 0;
+    if (keys.ArrowLeft || keys.KeyA) dx -= 1;
+    if (keys.ArrowRight || keys.KeyD) dx += 1;
+    if (keys.ArrowUp || keys.KeyW) dy -= 1;
+    if (keys.ArrowDown || keys.KeyS) dy += 1;
+    if (joyActive) {
+      const dz = 0.2;
+      if (Math.abs(joyDx) > dz) dx += joyDx;
+      if (Math.abs(joyDy) > dz) dy += joyDy;
+    }
+    const mag = Math.hypot(dx, dy);
+    if (mag > 1) { dx /= mag; dy /= mag; }
+    if (mag > 0.1) {
+      const speed = PLAYER_SPEED;
+      let nx = (tim.x + dx*speed) / TILE;
+      let ny = (tim.y + dy*speed) / TILE;
+      if (!blockedAt(nx, tim.y/TILE)) tim.x += dx*speed;
+      if (!blockedAt(tim.x/TILE, ny)) tim.y += dy*speed;
+
+      tim.walk += 0.25;
+      if (Math.abs(dx) > Math.abs(dy)) tim.dir = dx > 0 ? 'right' : 'left';
+      else tim.dir = dy > 0 ? 'down' : 'up';
+
+      const loc = game.location;
+      const px = tim.x/TILE, py = tim.y/TILE;
+      (loc.exits||[]).forEach(ex => {
+        if (px >= ex.x + 0.1 && px <= ex.x + ex.w - 0.1 &&
+            py >= ex.y + 0.1 && py <= ex.y + ex.h - 0.1) {
+          if (!game._lastExitFire || performance.now() - game._lastExitFire > 1500) {
+            game._lastExitFire = performance.now();
+            if (ex.condition && !ex.condition()) {
+              showDialog({ who:'', lines: [ex.condFail || 'Здесь пока нечего делать.'] });
+              return;
+            }
+            transition(ex.to, ex.spawnAt, ex.onEnter);
+          }
+        }
+      });
+    } else {
+      tim.walk *= 0.85;
+    }
+
+    const hit = getNearbyInteractive();
+    if (hit && !dialogState) {
+      hintEl.textContent = '▶ ' + (
+        hit.kind === 'npc' ? hit.ref.name :
+        hit.kind === 'item' ? hit.ref.name :
+        'ВОЙТИ'
+      );
+      hintEl.classList.remove('hidden');
+      actionBtn.classList.add('glow');
+    } else {
+      hintEl.classList.add('hidden');
+      actionBtn.classList.remove('glow');
+    }
+  }
+
+  function render() {
+    const loc = game.location;
+    if (!loc) return;
+    const viewW = W, viewH = H;
+    const mapPxW = loc.tilesW * TILE;
+    const mapPxH = loc.tilesH * TILE;
+    let camX = tim.x - viewW/2;
+    let camY = tim.y - viewH/2;
+    if (mapPxW < viewW) camX = -(viewW - mapPxW)/2;
+    else camX = Math.max(0, Math.min(camX, mapPxW - viewW));
+    if (mapPxH < viewH) camY = -(viewH - mapPxH)/2;
+    else camY = Math.max(0, Math.min(camY, mapPxH - viewH));
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,W,H);
+    ctx.save();
+    ctx.translate(-camX, -camY);
+
+    ctx.fillStyle = loc.floor || '#222';
+    ctx.fillRect(0, 0, mapPxW, mapPxH);
+
+    ctx.fillStyle = loc.wall || '#000';
+    loc.walls.forEach(w => {
+      const onExit = (loc.exits||[]).some(ex =>
+        w.x < ex.x + ex.w && w.x + w.w > ex.x &&
+        w.y < ex.y + ex.h && w.y + w.h > ex.y);
+      if (onExit) return;
+      ctx.fillRect(w.x*TILE, w.y*TILE, w.w*TILE, w.h*TILE);
+    });
+
+    ctx.strokeStyle = 'rgba(0,225,255,0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, mapPxW, mapPxH);
+
+    (loc.decor || []).forEach(d => drawDecor(d));
+
+    (loc.exits || []).forEach(ex => {
+      const passable = !ex.condition || ex.condition();
+      ctx.fillStyle = passable ? 'rgba(0,225,255,0.25)' : 'rgba(255,68,119,0.25)';
+      ctx.fillRect(ex.x*TILE, ex.y*TILE, ex.w*TILE, ex.h*TILE);
+      ctx.strokeStyle = passable ? '#00e1ff' : '#ff4477';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(ex.x*TILE+1, ex.y*TILE+1, ex.w*TILE-2, ex.h*TILE-2);
+      ctx.fillStyle = passable ? '#fff' : '#ff4477';
+      ctx.font = '20px Impact';
+      ctx.textAlign = 'center';
+      ctx.fillText(passable ? '→' : '✕', ex.x*TILE + ex.w*TILE/2, ex.y*TILE + ex.h*TILE/2 + 6);
+      ctx.textAlign = 'left';
+    });
+
+    (loc.interactables || []).forEach(i => {
+      const cx = i.x*TILE + TILE/2;
+      const cy = i.y*TILE + TILE/2;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
+      grad.addColorStop(0, 'rgba(255,210,63,0.18)');
+      grad.addColorStop(1, 'rgba(255,210,63,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI*2); ctx.fill();
+    });
+
+    (loc.npcs || []).forEach(n => drawNPC(n));
+
+    drawTim();
+
+    ctx.restore();
+  }
+
+  function drawDecor(d) {
+    const x = d.x * TILE, y = d.y * TILE;
+    const w = (d.w||1)*TILE, h = (d.h||1)*TILE;
+    switch (d.type) {
+      case 'bed':
+        ctx.fillStyle = '#446688';
+        ctx.fillRect(x+4, y+4, w-8, h-8);
+        ctx.fillStyle = '#ddd';
+        ctx.fillRect(x+8, y+6, w-16, h/2 - 6);
+        ctx.fillStyle = '#88a';
+        ctx.fillRect(x+8, y+10, 12, 8);
+        break;
+      case 'desk':
+        ctx.fillStyle = '#5a4030';
+        ctx.fillRect(x+4, y+4, w-8, h-8);
+        ctx.fillStyle = '#3a2418';
+        ctx.fillRect(x+4, y+h-10, w-8, 6);
+        break;
+      case 'computer': {
+        const cx = x + TILE/2, cy = y + TILE/2;
+        // monitor
+        ctx.fillStyle = '#000';
+        ctx.fillRect(cx-14, cy-14, 28, 18);
+        ctx.fillStyle = '#0a3340';
+        ctx.fillRect(cx-12, cy-12, 24, 14);
+        // FL Studio waveform
+        ctx.fillStyle = '#00e1ff';
+        ctx.fillRect(cx-10, cy-4, 4, 6);
+        ctx.fillRect(cx-5, cy-8, 4, 10);
+        ctx.fillRect(cx, cy-2, 4, 4);
+        ctx.fillRect(cx+5, cy-10, 4, 12);
+        // stand
+        ctx.fillStyle = '#222';
+        ctx.fillRect(cx-3, cy+4, 6, 4);
+        ctx.fillRect(cx-8, cy+8, 16, 2);
+        break;
+      }
+      case 'speakers':
+        ctx.fillStyle = '#111';
+        ctx.fillRect(x+8, y+6, TILE-16, TILE-12);
+        ctx.fillStyle = '#333';
+        ctx.beginPath(); ctx.arc(x+TILE/2, y+TILE/2-2, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.arc(x+TILE/2, y+TILE/2-2, 3, 0, Math.PI*2); ctx.fill();
+        break;
+      case 'door':
+        ctx.fillStyle = '#6a3a1a';
+        ctx.fillRect(x+4, y+2, w-8, h-4);
+        ctx.fillStyle = '#ffd23f';
+        ctx.beginPath(); ctx.arc(x+w-10, y+h/2, 2, 0, Math.PI*2); ctx.fill();
+        if (d.label) {
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 8px Impact';
+          ctx.textAlign = 'center';
+          ctx.fillText(d.label, x+w/2, y-2);
+          ctx.textAlign = 'left';
+        }
+        break;
+      case 'poster':
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x+2, y+2, TILE-4, TILE-4);
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 6px Impact';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.label||'', x+TILE/2, y+TILE/2);
+        ctx.strokeStyle = '#00e1ff';
+        ctx.strokeRect(x+2, y+2, TILE-4, TILE-4);
+        ctx.textAlign = 'left';
+        break;
+      case 'rug':
+        ctx.fillStyle = '#553355';
+        ctx.fillRect(x+4, y+4, w-8, h-8);
+        ctx.strokeStyle = '#aa66aa';
+        ctx.strokeRect(x+8, y+8, w-16, h-16);
+        break;
+      case 'screen': {
+        const cx = x + TILE/2, cy = y + TILE/2;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(cx-16, cy-14, 32, 20);
+        ctx.fillStyle = '#1a4060';
+        ctx.fillRect(cx-14, cy-12, 28, 16);
+        ctx.fillStyle = '#ffd23f';
+        ctx.font = 'bold 7px Impact';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.label||'', cx, cy-2);
+        ctx.textAlign = 'left';
+        // scanlines
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        for (let i=0;i<3;i++) ctx.fillRect(cx-14, cy-10+i*5, 28, 1);
+        break;
+      }
+      case 'mixing-desk':
+        ctx.fillStyle = '#222';
+        ctx.fillRect(x+2, y+2, w-4, h-4);
+        // faders
+        ctx.fillStyle = '#666';
+        for (let i = 0; i < 8; i++) {
+          ctx.fillRect(x+8 + i*((w-16)/8), y+8, 3, h-16);
+          ctx.fillStyle = '#ffd23f';
+          ctx.fillRect(x+7 + i*((w-16)/8), y+10 + (i*3)%(h-20), 5, 3);
+          ctx.fillStyle = '#666';
+        }
+        // knobs
+        ctx.fillStyle = '#999';
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.arc(x+12 + i*((w-24)/4), y+h-6, 2, 0, Math.PI*2);
+          ctx.fill();
+        }
+        break;
+      case 'monitor-pair':
+        ctx.fillStyle = '#111';
+        ctx.fillRect(x+6, y+4, TILE-12, TILE-8);
+        ctx.fillStyle = '#444';
+        ctx.beginPath(); ctx.arc(x+TILE/2, y+TILE/2, 7, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.arc(x+TILE/2, y+TILE/2, 4, 0, Math.PI*2); ctx.fill();
+        break;
+      case 'sofa':
+        ctx.fillStyle = '#3a1a1a';
+        ctx.fillRect(x+2, y+2, w-4, h-4);
+        ctx.fillStyle = '#5a2a2a';
+        ctx.fillRect(x+2, y+2, w-4, 10);
+        break;
+      case 'dj-booth': {
+        const cx = x + w/2, cy = y + h/2;
+        ctx.fillStyle = '#111';
+        ctx.fillRect(x+4, y+4, w-8, h-8);
+        // CDJs
+        ctx.fillStyle = '#222';
+        ctx.beginPath(); ctx.arc(cx-20, cy, 14, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx+20, cy, 14, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ffd23f';
+        ctx.beginPath(); ctx.arc(cx-20, cy, 6, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx+20, cy, 6, 0, Math.PI*2); ctx.fill();
+        // mixer between
+        ctx.fillStyle = '#333';
+        ctx.fillRect(cx-10, cy-12, 20, 24);
+        // LED bars
+        ctx.fillStyle = '#0f0';
+        for (let i=0; i<5; i++) ctx.fillRect(cx-7+i*3, cy-2, 2, 4);
+        // AVICII text
+        ctx.fillStyle = '#ffd23f';
+        ctx.font = 'bold 10px Impact';
+        ctx.textAlign = 'center';
+        ctx.fillText('AVICII', cx, y+h-2);
+        ctx.textAlign = 'left';
+        break;
+      }
+      case 'pyro': {
+        const flick = Math.sin(performance.now()*0.02 + d.x)*0.5 + 0.5;
+        const cx = x+TILE/2, cy = y+TILE/2;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+        grad.addColorStop(0, `rgba(255,${100+flick*100},0,${0.6+flick*0.3})`);
+        grad.addColorStop(1, 'rgba(255,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI*2); ctx.fill();
+        break;
+      }
+      case 'spotlight': {
+        const cx = x + TILE/2, cy = y + TILE/2;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 50);
+        grad.addColorStop(0, 'rgba(255,210,63,0.6)');
+        grad.addColorStop(1, 'rgba(255,210,63,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, 50, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ffd23f';
+        ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.fill();
+        break;
+      }
+      case 'spotlight-soft': {
+        const cx = x + TILE/2, cy = y + TILE/2;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80);
+        grad.addColorStop(0, 'rgba(255,210,63,0.35)');
+        grad.addColorStop(1, 'rgba(255,210,63,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, 80, 0, Math.PI*2); ctx.fill();
+        break;
+      }
+      case 'crowd': {
+        const t = performance.now()*0.005;
+        for (let i = 0; i < w/12; i++) {
+          const cx = x + 8 + i*12;
+          const cy = y + TILE - 6 + Math.sin(t + i)*3;
+          ctx.fillStyle = '#000';
+          ctx.beginPath(); ctx.arc(cx, cy-6, 3, 0, Math.PI*2); ctx.fill();
+          ctx.fillRect(cx-3, cy-3, 6, 6);
+          if (Math.sin(t*1.3 + i) > 0) {
+            ctx.fillRect(cx-3, cy-12, 1, 6);
+            ctx.fillRect(cx+2, cy-12, 1, 6);
+          }
+        }
+        break;
+      }
+      case 'piano':
+        ctx.fillStyle = '#111';
+        ctx.fillRect(x+2, y+2, w-4, h-4);
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 10; i++) ctx.fillRect(x+4 + i*((w-8)/10), y+6, ((w-8)/10) - 1, h-12);
+        ctx.fillStyle = '#000';
+        for (let i = 0; i < 6; i++) ctx.fillRect(x+8 + i*((w-16)/6) - 1, y+6, 3, (h-12)/2);
+        break;
+      case 'plant':
+        ctx.fillStyle = '#3a2010';
+        ctx.fillRect(x+TILE/2-4, y+TILE-12, 8, 8);
+        ctx.fillStyle = '#2a6a2a';
+        ctx.beginPath(); ctx.arc(x+TILE/2, y+TILE/2-2, 9, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#3a8a3a';
+        ctx.beginPath(); ctx.arc(x+TILE/2-3, y+TILE/2-5, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x+TILE/2+3, y+TILE/2-5, 5, 0, Math.PI*2); ctx.fill();
+        break;
+      case 'window-big':
+        ctx.fillStyle = '#88ccff';
+        ctx.fillRect(x+4, y+4, w-8, h-4);
+        ctx.fillStyle = '#fff';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(x+6, y+6, 4, h-10);
+        ctx.fillRect(x+w/2, y+6, 4, h-10);
+        ctx.globalAlpha = 1;
+        // stars beyond
+        ctx.fillStyle = '#fff';
+        for (let i=0;i<6;i++) ctx.fillRect(x+8+i*8, y+8+(i%3)*4, 1, 1);
+        ctx.strokeStyle = '#553';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x+4, y+4, w-8, h-4);
+        break;
+      case 'candle': {
+        const cx = x + TILE/2, cy = y + TILE/2;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(cx-3, cy-2, 6, 14);
+        const flick = Math.sin(performance.now()*0.01 + d.x)*0.5 + 0.5;
+        ctx.fillStyle = `rgba(255,${180+flick*40},80,${0.8+flick*0.2})`;
+        ctx.beginPath(); ctx.arc(cx, cy-6, 3+flick, 0, Math.PI*2); ctx.fill();
+        const grad = ctx.createRadialGradient(cx, cy-6, 0, cx, cy-6, 20);
+        grad.addColorStop(0, `rgba(255,210,63,${0.4+flick*0.2})`);
+        grad.addColorStop(1, 'rgba(255,210,63,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy-6, 20, 0, Math.PI*2); ctx.fill();
+        break;
+      }
+      case 'memorial': {
+        const cx = x + w/2, cy = y + h/2;
+        // pedestal
+        ctx.fillStyle = '#2a2a3a';
+        ctx.fillRect(x+8, y+8, w-16, h-16);
+        // lightning bolt (Avicii's symbol)
+        ctx.fillStyle = '#ffd23f';
+        ctx.beginPath();
+        ctx.moveTo(cx+2, cy-14);
+        ctx.lineTo(cx-6, cy);
+        ctx.lineTo(cx-2, cy);
+        ctx.lineTo(cx-6, cy+12);
+        ctx.lineTo(cx+8, cy-2);
+        ctx.lineTo(cx+2, cy-2);
+        ctx.lineTo(cx+6, cy-14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        break;
+      }
+    }
+  }
+
+  function drawCharacter(cx, cy, opts) {
+    const bob = opts.walk ? Math.sin(opts.walk) * 1.5 : 0;
+    ctx.save();
+    ctx.translate(cx, cy + bob);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.ellipse(0, 14, 11, 4, 0, 0, Math.PI*2); ctx.fill();
+
+    // legs (jeans)
+    const legSwing = opts.walk ? Math.sin(opts.walk*2)*3 : 0;
+    ctx.fillStyle = '#2a4a7a';
+    ctx.fillRect(-6, 4, 4, 10 + (legSwing>0?2:0));
+    ctx.fillRect(2, 4, 4, 10 + (legSwing<0?2:0));
+
+    // body — Avicii: t-shirt + cap style
+    ctx.fillStyle = opts.isTim ? '#ffffff' : (opts.color || '#444');
+    ctx.fillRect(-9, -8, 18, 14);
+
+    // arms
+    ctx.fillStyle = opts.isTim ? '#f4d8c0' : (opts.color || '#444');
+    ctx.fillRect(-13, -6, 4, 12);
+    ctx.fillRect(9, -6, 4, 12);
+
+    // head
+    const skin = '#f4d8c0';
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.arc(0, -14, 8, 0, Math.PI*2); ctx.fill();
+
+    // hair
+    if (opts.isTim) {
+      // Tim: short brown messy hair
+      ctx.fillStyle = '#3a2418';
+      ctx.beginPath(); ctx.arc(0, -16, 9, Math.PI, Math.PI*2); ctx.fill();
+      ctx.fillRect(-9, -17, 18, 5);
+      // sideburns + small fringe
+      ctx.fillRect(-8, -12, 2, 3);
+      ctx.fillRect(6, -12, 2, 3);
+    } else if (opts.hair === 'mom') {
+      ctx.fillStyle = '#3a2418';
+      ctx.beginPath(); ctx.arc(0, -16, 9, Math.PI, Math.PI*2); ctx.fill();
+      ctx.fillRect(-9, -16, 18, 4);
+      ctx.beginPath(); ctx.arc(-8, -12, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(8, -12, 2, 0, Math.PI*2); ctx.fill();
+    } else if (opts.hair === 'shaggy') {
+      ctx.fillStyle = '#553311';
+      ctx.beginPath(); ctx.arc(0, -16, 10, Math.PI, Math.PI*2); ctx.fill();
+      ctx.fillRect(-10, -17, 20, 7);
+      ctx.fillRect(-9, -12, 2, 4);
+      ctx.fillRect(7, -12, 2, 4);
+    } else if (opts.hair === 'suit') {
+      ctx.fillStyle = '#2a1808';
+      ctx.beginPath(); ctx.arc(0, -17, 8, Math.PI, Math.PI*2); ctx.fill();
+      ctx.fillRect(-8, -18, 16, 3);
+    }
+
+    // face
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-4, -15, 2, 2);
+    ctx.fillRect(2, -15, 2, 2);
+    ctx.fillRect(-3, -11, 6, 1);
+
+    ctx.restore();
+  }
+
+  function drawTim() {
+    drawCharacter(tim.x, tim.y, { walk: tim.walk, isTim: true });
+    ctx.fillStyle = 'rgba(255,210,63,0.8)';
+    ctx.font = 'bold 9px Impact';
+    ctx.textAlign = 'center';
+    ctx.fillText('TIM', tim.x, tim.y - 28);
+    ctx.textAlign = 'left';
+  }
+
+  function drawNPC(n) {
+    drawCharacter(n.x*TILE + TILE/2, n.y*TILE + TILE/2, {
+      walk: performance.now()*0.003 + n.x,
+      isTim: false,
+      color: n.color,
+      hair: n.hair,
+    });
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = 'bold 9px Impact';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.name.toUpperCase(), n.x*TILE + TILE/2, n.y*TILE + TILE/2 - 28);
+    ctx.textAlign = 'left';
+  }
+
+  let running = false;
+  function loop() {
+    if (!running) return;
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function startGame() {
+    game.flags = {};
+    game.location = LOCATIONS.bedroom;
+    setPlace(game.location.name);
+    tim.x = 8 * TILE;
+    tim.y = 6 * TILE;
+    setQuest('Поговори с братом Дэвидом, потом подойди к компьютеру.');
+    introEl.classList.add('hidden');
+    endingEl.classList.add('hidden');
+    running = true;
+    try { ac().resume(); } catch(e){}
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('restartBtn').addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>

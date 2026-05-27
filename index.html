@@ -215,7 +215,10 @@
 <div id="fade"></div>
 
 <div id="intro" class="overlay">
-  <div class="star-big">⚡</div>
+  <svg class="avicii-logo" viewBox="0 0 100 90" width="96" height="86" style="filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 8px;">
+    <polygon points="50,5 95,82 5,82" fill="none" stroke="#ffd23f" stroke-width="3"/>
+    <polygon points="50,28 78,75 22,75" fill="#ffd23f"/>
+  </svg>
   <h1>WAKE ME UP</h1>
   <h2>История Тима Берглинга · Бродилка</h2>
   <p>Ты — Тим Берглинг. Парень из Стокгольма, который изменил электронную музыку и стал известен миру как <b style="color:var(--gold)">Avicii</b>.</p>
@@ -225,7 +228,10 @@
 </div>
 
 <div id="ending" class="overlay hidden">
-  <div class="star-big">🕯</div>
+  <svg viewBox="0 0 100 90" width="96" height="86" style="filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 8px;">
+    <polygon points="50,5 95,82 5,82" fill="none" stroke="#ffd23f" stroke-width="3"/>
+    <polygon points="50,28 78,75 22,75" fill="#ffd23f"/>
+  </svg>
   <h1 id="endTitle">НАСЛЕДИЕ</h1>
   <h2 id="endSub"></h2>
   <p id="endText"></p>
@@ -1529,21 +1535,31 @@
         // pedestal
         ctx.fillStyle = '#2a2a3a';
         ctx.fillRect(x+8, y+8, w-16, h-16);
-        // lightning bolt (Avicii's symbol)
+        // Avicii's symbol: triangle pointing down (from True album, 2013)
+        // Outer triangle (outline)
+        ctx.strokeStyle = '#ffd23f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx-18, cy-14);  // top-left
+        ctx.lineTo(cx+18, cy-14);  // top-right
+        ctx.lineTo(cx, cy+16);     // bottom point
+        ctx.closePath();
+        ctx.stroke();
+        // Inner filled triangle
         ctx.fillStyle = '#ffd23f';
         ctx.beginPath();
-        ctx.moveTo(cx+2, cy-14);
-        ctx.lineTo(cx-6, cy);
-        ctx.lineTo(cx-2, cy);
-        ctx.lineTo(cx-6, cy+12);
-        ctx.lineTo(cx+8, cy-2);
-        ctx.lineTo(cx+2, cy-2);
-        ctx.lineTo(cx+6, cy-14);
+        ctx.moveTo(cx-11, cy-6);
+        ctx.lineTo(cx+11, cy-6);
+        ctx.lineTo(cx, cy+12);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = '#fff';
+        // soft glow
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 28);
+        grad.addColorStop(0, 'rgba(255,210,63,0.25)');
+        grad.addColorStop(1, 'rgba(255,210,63,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI*2); ctx.fill();
         ctx.lineWidth = 1;
-        ctx.stroke();
         break;
       }
     }

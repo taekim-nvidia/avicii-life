@@ -215,9 +215,10 @@
 <div id="fade"></div>
 
 <div id="intro" class="overlay">
-  <svg class="avicii-logo" viewBox="0 0 100 90" width="96" height="86" style="filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 8px;">
-    <polygon points="50,5 95,82 5,82" fill="none" stroke="#ffd23f" stroke-width="3"/>
-    <polygon points="50,28 78,75 22,75" fill="#ffd23f"/>
+  <svg class="avicii-logo" viewBox="0 0 120 70" width="120" height="70" style="filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 8px;">
+    <!-- Two triangles meeting at apex: ◢ ◤ (Avicii bow-tie logo) -->
+    <polygon points="5,5 60,35 5,65" fill="#ffd23f"/>
+    <polygon points="115,5 60,35 115,65" fill="#ffd23f"/>
   </svg>
   <h1>WAKE ME UP</h1>
   <h2>История Тима Берглинга · Бродилка</h2>
@@ -228,9 +229,9 @@
 </div>
 
 <div id="ending" class="overlay hidden">
-  <svg viewBox="0 0 100 90" width="96" height="86" style="filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 8px;">
-    <polygon points="50,5 95,82 5,82" fill="none" stroke="#ffd23f" stroke-width="3"/>
-    <polygon points="50,28 78,75 22,75" fill="#ffd23f"/>
+  <svg viewBox="0 0 120 70" width="120" height="70" style="filter: drop-shadow(0 0 18px var(--neon)); margin-bottom: 8px;">
+    <polygon points="5,5 60,35 5,65" fill="#ffd23f"/>
+    <polygon points="115,5 60,35 115,65" fill="#ffd23f"/>
   </svg>
   <h1 id="endTitle">НАСЛЕДИЕ</h1>
   <h2 id="endSub"></h2>
@@ -1535,31 +1536,28 @@
         // pedestal
         ctx.fillStyle = '#2a2a3a';
         ctx.fillRect(x+8, y+8, w-16, h-16);
-        // Avicii's symbol: triangle pointing down (from True album, 2013)
-        // Outer triangle (outline)
-        ctx.strokeStyle = '#ffd23f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(cx-18, cy-14);  // top-left
-        ctx.lineTo(cx+18, cy-14);  // top-right
-        ctx.lineTo(cx, cy+16);     // bottom point
-        ctx.closePath();
-        ctx.stroke();
-        // Inner filled triangle
+        // Avicii logo: two triangles meeting at apex (◢ ◤ — the bow-tie / hourglass)
         ctx.fillStyle = '#ffd23f';
+        // Left triangle (apex pointing right)
         ctx.beginPath();
-        ctx.moveTo(cx-11, cy-6);
-        ctx.lineTo(cx+11, cy-6);
-        ctx.lineTo(cx, cy+12);
+        ctx.moveTo(cx-22, cy-14);
+        ctx.lineTo(cx,    cy);
+        ctx.lineTo(cx-22, cy+14);
+        ctx.closePath();
+        ctx.fill();
+        // Right triangle (apex pointing left)
+        ctx.beginPath();
+        ctx.moveTo(cx+22, cy-14);
+        ctx.lineTo(cx,    cy);
+        ctx.lineTo(cx+22, cy+14);
         ctx.closePath();
         ctx.fill();
         // soft glow
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 28);
-        grad.addColorStop(0, 'rgba(255,210,63,0.25)');
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
+        grad.addColorStop(0, 'rgba(255,210,63,0.3)');
         grad.addColorStop(1, 'rgba(255,210,63,0)');
         ctx.fillStyle = grad;
-        ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI*2); ctx.fill();
-        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(cx, cy, 32, 0, Math.PI*2); ctx.fill();
         break;
       }
     }
